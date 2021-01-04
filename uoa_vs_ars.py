@@ -247,16 +247,14 @@ np.savetxt(r'F:\maulana\adjusted_dataset\segmented_putative_taurus_regions.txt',
 df_segment.plot.hist(by='chr', bins=29, grid=False, alpha=0.5)
 help(plt.hist)
 plt.hist(lagilagi.chr,bins=29)
-#Comparing genes detected in original and adjusted dataset
-gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
-gene2 = pd.read_csv(r'D:\maulana\Cattle2\analysis\uoa_regions_protein_coding_only.txt', header=None, sep="\t").to_numpy()
-intersect1=np.intersect1d(gene1, gene2)
 #Overlapped genes in adjusted dataset with reported by Koufarioutis
 gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
 gene3 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_taurus.txt', header=None, sep="\t").to_numpy()
-intersect=np.intersect1d(gene1, gene3)
+intersect=np.intersect1d(gene1, gene3) #intersect annotated genes with taurus_genes reported by Koufarioutis
 gene1_filtered=np.setdiff1d(gene1, intersect)
 gene4 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_indicus.txt', header=None, sep="\t").to_numpy()
-overlap=np.intersect1d(gene1, gene4)
-gene1_filtered_again=np.setdiff1d(gene1_filtered, overlap)
+overlap=np.intersect1d(gene1, gene4) #intersect annotated genes with indicus_genes reported by Koufarioutis
+gene1_filtered_again=np.setdiff1d(gene1_filtered, overlap) #genes without intersects
+##!!!Stop in here 
+np.savetxt('gene_intersect_taurus.txt', )   #save intersect
 
