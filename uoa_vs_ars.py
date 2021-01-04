@@ -1,0 +1,262 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jan  4 10:32:07 2021
+
+@author: NUWI_352019
+"""
+
+import os
+import glob
+import re
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+os.getcwd()
+os.chdir(r"F:\maulana\Analysis") #warning folder must contain only vcftools-freq2 output files
+
+#function for tabulation of frequency output
+def fetchdata(ref="ARS",filter=0.5,scan=1000000):
+    summary=pd.DataFrame(columns=("breed","chr","window","jumlah")) #empyty dataframe
+    def chr_length(reference='ARS'):
+        index=list(range(1,30))
+        if reference=="ARS":
+            length=[158534110,136231102,121005158,120000601,120089316,117806340,
+                    110682743,113319770,105454467,103308737,106982474,87216183,
+                    83472345,82403003,85007780,81013979,73167244,65820629,
+                    63449741,71974595,69862954,60773035,52498615,62317253,
+                    42350435,51992305,45612108,45940150,51098607]
+            refseq=pd.Series(data=length,index=index)
+        else:
+            length=[156943404,135844732,120786946,119487020,120179969,117220384,
+                    110433717,113109275,104466507,103156416,106190332,86744025,
+                    83353338,82466886,84270218,80235084,72619036,62583388,64467025,
+                    71581568,69837837,59995071,53510974,62414538,42605158,51310239,
+                    45108716,45896848,51254507]
+            refseq=pd.Series(data=length,index=index)
+        return refseq
+    refseq=chr_length(reference=ref)  
+    def daftar(reference='ARS'): #list files in the current directory matching the pattern name
+        list_of_files = glob.glob('*.txt')  # create the list of file
+        list_of_files3 = glob.glob('freq1_sr*.txt') #create the list of file with UOA
+        if reference=="ARS":
+            z=list(set(list_of_files) - set(list_of_files3))
+        else:
+            z=list_of_files3
+        return z  
+    files=daftar(reference=ref)
+    for nomer, file in enumerate(files):
+        ras=re.search('freq1_(.+?).txt', file).group(1) #extract string between "freq_" and ".txt"
+        data=pd.read_csv(file,delimiter="\t",header=None,usecols=[0,1,3,5])
+        data.columns=["chr","pos","n_al","alt"]
+        data=data.loc[data['alt'] > filter ] #filter alt allel more than 0.5
+        chr=data.chr.unique().tolist()
+        for i in chr:
+            chr_size=refseq[i] #getting size of the current chr
+            window=np.arange(1,chr_size,scan)#creating interval from 1 to length of chr1 by 1M space
+            window=np.append(window,chr_size) #adding closing for the interval
+            data1=data.loc[data['chr'] == i]
+            data1["terbagi"]=pd.cut(data1.pos,bins=window,labels=False,include_lowest=True)
+            dipisah=data1.groupby(by="terbagi").size() #counting how many variants within each scanning window
+            ditambah=pd.DataFrame(dipisah)
+            ditambah["window"]=ditambah.index
+            ditambah["breed"]=ras
+            ditambah["chr"]=i
+            ditambah.columns=["jumlah","window","breed","chr"]
+            ditambah = ditambah[['breed', 'chr', 'window', 'jumlah']]
+            summary=summary.append(ditambah)
+    summary.chr=summary["chr"].astype(int) #changing column from object to integer
+    summary.window=summary["window"].astype(int) #changing column from object to integer
+    summary.jumlah=summary["jumlah"].astype(int) #changing column from object to integer            
+    return summary        
+
+#works! for ARS now
+coba=fetchdata(ref="ARS", filter=0.95)
+list_all=list(coba.breed.unique())
+list_taur=["jersey","simmental","holstein","angus"]
+list_taur=["jersey","simmental","holstein","angus","hereford","shorthorn"]
+list_zeb=list(set(list_all)-set(list_taur))
+#function to group breeds into taurus/indicus
+def race(x):
+    if x in list_taur:
+        y="taurus"
+    else:
+        y="indicus"
+    return y
+coba["rase"]=coba.breed.str[:].apply(race) #new column based on string of another column
+#works with 29 subplots perfectly, hue on rase (fig.11)
+g = sns.FacetGrid(data=coba, col="chr", col_wrap=6, height=2, hue="rase", hue_order=["indicus","taurus"])
+g.map(sns.lineplot, "window", "jumlah", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
+g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='SNPs with fixed alternative', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel
+#works perfectly with 29 subplots, hue on rase(fig.12)
+fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
+u=list(range(1,30))
+pos=axes.flatten() #transform axes format from [a,k] to only single number
+for i, k in enumerate(u):
+    data_temp=coba.loc[coba['chr'] == k]
+    sns.boxplot(x="chr", y="jumlah",hue="rase",data=data_temp, linewidth=1, ax=pos[i],hue_order=["indicus","taurus"])
+    pos[i].get_legend().remove()
+    handles, labels = pos[i].get_legend_handles_labels()
+    pos[i].set_title('chr' + str(k)) #set title for subplots
+    pos[i].set_xticks([])
+    pos[i].xaxis.label.set_visible(False)
+    labels=['Bos indicus', 'Bos taurus']
+    pos[i].set_ylabel("")
+    #pos[i].tick_params(top='off', bottom='off', left='on', right='off', labelleft='on', labelbottom='off')
+fig.legend(handles, labels, loc='center right')
+#fig.text(0.5, 0.04, 'common X', ha='center')
+fig.text(0.07, 0.5, 'SNPs with fixed alternative', va='center', rotation='vertical')
+fig.delaxes(pos[29]) #deleting subplot number 29
+
+#works! for UOA mapped individuals
+test=fetchdata(ref="UOA", filter=0.95)
+#test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
+listall=list(test.breed.unique())
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus"]
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
+          "sr_shorthorn"]
+listzeb=list(set(listall)-set(listtaur))
+#function to group breeds into taurus/indicus
+def ras(x):
+    if x in listtaur:
+        y="taurus"
+    else:
+        y="indicus"
+    return y
+test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
+#Fig9(Lineplot hue on rase) edit legends, x-label & y-label 
+g = sns.FacetGrid(data=test, col="chr", height=2, hue="rase", 
+                  hue_order=["indicus","taurus"],col_wrap=6)
+g.map(sns.lineplot, "window", "jumlah", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ")
+g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='SNPs with fixed alternative', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel
+#Fig10(Boxplot hue on rase) edited legends and labels !! 
+fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
+u=list(range(1,30))
+pos=axes.flatten() #transform axes format from [a,k] to only single number
+for i, k in enumerate(u):
+    data_temp=test.loc[test['chr'] == k]
+    sns.boxplot(x="chr", y="jumlah",hue="rase",data=data_temp, linewidth=1, ax=pos[i],hue_order=["indicus","taurus"])
+    pos[i].get_legend().remove()
+    handles, labels = pos[i].get_legend_handles_labels()
+    pos[i].set_title('chr' + str(k)) #set title for subplots
+    pos[i].set_xticks([])
+    pos[i].xaxis.label.set_visible(False)
+    labels=['Bos indicus', 'Bos taurus']
+    pos[i].set_ylabel("")
+    #pos[i].tick_params(top='off', bottom='off', left='on', right='off', labelleft='on', labelbottom='off')
+fig.legend(handles, labels, loc='center right')
+#fig.text(0.5, 0.04, 'common X', ha='center')
+fig.text(0.07, 0.5, 'SNPs with fixed alternative', va='center', rotation='vertical')
+fig.delaxes(pos[29]) #deleting subplot number 29
+
+#pivot dataframe, using multiple index 'chr and window'
+test_lagi=pd.pivot_table(test, values='jumlah', index=['chr', 'window'], columns=['rase'])
+test_lagi.head()
+#delta1 as different values of indicus-mean minus taurus sites
+test_lagi = test_lagi.assign(delta1=lambda x: test_lagi.mean().taurus - x.taurus )
+test_lagi.head()
+#Plotting histogram (fig.18)
+g=sns.distplot(test_lagi['delta1'], hist=True, kde=True, norm_hist=False,
+             bins=int(180/5), color = 'blue', 
+             hist_kws={'edgecolor':'black'}, 
+             axlabel=("Number of corrected taurus SNPs (Delta)"))
+g.set(yticks=[])
+g.set(xlabel="Number of corrected taurus SNPs (Delta)", ylabel="Density function")
+
+#plot using general mean and std of delta1
+rata=test_lagi.mean().delta1
+st=test_lagi.std().delta1
+batas=st*1.5 + rata
+batas1=rata-st*1.5
+#plot delta1 value
+fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
+u=list(range(1,30))
+pos=axes.flatten() #transform axes format from [a,k] to only single number
+for i, k in enumerate(u):
+    data_temp=test_lagi.loc[test_lagi.index.get_level_values(0).isin({k}),:].reset_index()
+    sns.lineplot(x="window", y="delta1",data=data_temp, linewidth=1,ax=pos[i])
+    #pos[i].set(ylim=(rata, None)) #set ylim
+    pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+    pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+    handles, labels = pos[i].get_legend_handles_labels()
+    pos[i].set_title('Chr ' + str(k)) #set title for subplots
+    pos[i].xaxis.label.set_visible(False)
+    if i in [23,24,25,26,27,28]:
+        pos[i].set_xticks([0,30,60,90,120,150])
+    else:
+         pos[i].set_xticks([])
+    pos[i].set_ylabel("")
+    #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+fig.legend(handles, labels, loc='center right')
+fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+fig.delaxes(pos[29]) #deleting subplot number 29
+#filter dataset above 1.5 of standard deviation
+lagilagi=test_lagi[test_lagi["delta1"]>batas].reset_index()
+lagilagi=lagilagi.assign(start= lambda x: x.window*1000000)
+lagilagi=lagilagi.assign(end= lambda x: x.window*1000000 + 1000000-1)
+lagilagi = lagilagi[["chr","start","end"]]
+lagilagi.tail()
+#output regions to bed file
+np.savetxt(r'F:\maulana\adjusted_dataset\region_of_interest.bed', lagilagi.values, 
+           fmt='%s', delimiter="\t") #all windows
+np.savetxt(r'F:\maulana\adjusted_dataset\sites_count.txt',
+           lagilagi,fmt='%s',
+           header='rase chr window start end indicus taurus delta', 
+           delimiter="\t") 
+#Compacting/segmenting dataset and counting the mean of taurus introgressed regions
+df=test_lagi[test_lagi["delta1"]>batas].reset_index() #extracting regions passing treshold of batas
+df=df.assign(start= lambda x: x.window*1000000)
+df=df.assign(end= lambda x: x.window*1000000 + 1000000-1)
+h=list(set(df.chr.tolist())) #extracting chr number in df.chr, take the unique number, and set in a list
+df_segment=pd.DataFrame(columns=("chr","start","end","delta1", "size")) #empyty dataframe
+for i in h:
+    temp=df[df["chr"]==i] #subset df per chromosome inquired
+    mask = temp['start'] != temp['end'].shift()+1 #checking whether current row of 'start' doesn't match previous row 'end'
+    temp1=temp.groupby(mask.cumsum()).agg({'chr':'first','start':'first', 'end':'last', 'delta1':'sum'}) #extract four columns of 'temp' based on grouping of 'mask'
+    temp1=temp1.assign(size= lambda x: (x.end+1 - x.start)/1000000) #assign 'size' column to the temp1
+    df_segment=df_segment.append(temp1) #append each temporary chr dataframe to final dataframe 
+#saving the whole segments with taurus introgression
+np.savetxt(r'F:\maulana\adjusted_dataset\segmented_putative_taurus_regions.txt',
+           df_segment,fmt='%s',
+           header='Chr Start End Delta Size', 
+           delimiter="\t")  
+#histogram of segments with taurus introgression
+df_segment.plot.hist(by='chr', bins=29, grid=False, alpha=0.5)
+help(plt.hist)
+plt.hist(lagilagi.chr,bins=29)
+#Comparing genes detected in original and adjusted dataset
+gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
+gene2 = pd.read_csv(r'D:\maulana\Cattle2\analysis\uoa_regions_protein_coding_only.txt', header=None, sep="\t").to_numpy()
+intersect1=np.intersect1d(gene1, gene2)
+#Overlapped genes in adjusted dataset with reported by Koufarioutis
+gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
+gene3 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_taurus.txt', header=None, sep="\t").to_numpy()
+intersect=np.intersect1d(gene1, gene3)
+gene1_filtered=np.setdiff1d(gene1, intersect)
+gene4 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_indicus.txt', header=None, sep="\t").to_numpy()
+overlap=np.intersect1d(gene1, gene4)
+gene1_filtered_again=np.setdiff1d(gene1_filtered, overlap)
+
