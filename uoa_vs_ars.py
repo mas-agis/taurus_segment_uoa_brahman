@@ -243,18 +243,74 @@ np.savetxt(r'F:\maulana\adjusted_dataset\segmented_putative_taurus_regions.txt',
            df_segment,fmt='%s',
            header='Chr Start End Delta Size', 
            delimiter="\t")  
-#histogram of segments with taurus introgression
-df_segment.plot.hist(by='chr', bins=29, grid=False, alpha=0.5)
-help(plt.hist)
-plt.hist(lagilagi.chr,bins=29)
 #Overlapped genes in adjusted dataset with reported by Koufarioutis
 gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
 gene3 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_taurus.txt', header=None, sep="\t").to_numpy()
-intersect=np.intersect1d(gene1, gene3) #intersect annotated genes with taurus_genes reported by Koufarioutis
-gene1_filtered=np.setdiff1d(gene1, intersect)
-gene4 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_indicus.txt', header=None, sep="\t").to_numpy()
-overlap=np.intersect1d(gene1, gene4) #intersect annotated genes with indicus_genes reported by Koufarioutis
-gene1_filtered_again=np.setdiff1d(gene1_filtered, overlap) #genes without intersects
-##!!!Stop in here 
-np.savetxt('gene_intersect_taurus.txt', )   #save intersect
+inter=np.intersect1d(gene1, gene3) #intersect annotated genes with taurus_genes reported by Koufarioutis
+gene1_filtered=np.setdiff1d(gene1, inter) #takes only elements of 'gene1' that not found in 'inter'
+np.savetxt(r'F:\maulana\adjusted_dataset\gene_intersect_taurus.txt',inter,fmt='%s')#save intersect
+np.savetxt(r'F:\maulana\adjusted_dataset\gene_non_intersect_taurus.txt',gene1_filtered,fmt='%s')#save non_intersect
+gene4=pd.read_csv(r'D:\maulana\Cattle\ResourceBundle\ncbi-genomes-2020-08-03\UOA_genes_full.txt',
+                  header=None, sep="\t").to_numpy() #all genes in UOA list
+gene4_filtered=np.setdiff1d(gene4, gene1)
+np.savetxt(r'F:\maulana\adjusted_dataset\gene_putative_indicus.txt',gene4_filtered,fmt='%s')#save intersect
 
+
+##Comparing neutral taurus genes to default genes GO functions
+GO=pd.read_csv(r'F:\maulana\adjusted_dataset\gene_non_intersect_taurus_panther_chart.txt',
+               delimiter="\t",header=None, usecols=[1,2])
+GO=GO.rename(columns={1: "go", 2: "count"})
+GO=GO.set_index('go')
+GO_default=pd.read_csv(r'F:\maulana\adjusted_dataset\default_genes_pantherChart.txt',
+               delimiter="\t",header=None, usecols=[1,2])
+GO_default=GO_default.rename(columns={1: "go", 2: "count"})
+GO_default=GO_default.set_index('go')
+GO_comb=GO_default.join(GO, lsuffix="_def", rsuffix="_gen")
+GO_comb=GO_comb.assign(def_per=lambda x: GO_comb.count_def/GO_comb.count_def.sum())
+GO_comb=GO_comb.assign(gen_per=lambda x: GO_comb.count_gen/GO_comb.count_gen.sum())
+GO_comb=GO_comb.assign(changes=lambda x: (GO_comb.gen_per-GO_comb.def_per)*100)
+#Save to txt GO_comb sorted by changes
+dat=GO_comb.sort_values(by=['changes'],ascending=False).reset_index()
+np.savetxt(r'F:\maulana\adjusted_dataset\panther_comparison.txt',
+           dat,fmt='%s',delimiter="\t")  
+#subplotting for each GO term
+x = GO_comb.index.to_numpy()
+xi=range(len(x))
+fig, ax = plt.subplots(figsize=(16,14))
+for i,k in enumerate(xi):
+    lab=x[i]
+    y=GO_comb.changes[i]
+    ax.bar(x=i, height=y, width=0.8, label=lab)
+    #Attach a text label above each bar
+    ax.annotate(x[i], xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')        
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Difference to default in percent')
+ax.set_xlabel("GO_Slim Biological Process")
+#ax.set.axhline(0,ls='dotted', c="firebrick")
+ax.set_xticks([])
+ax.set_xticklabels(labels)
+ax.legend()
+fig.tight_layout()
+plt.show()  
+#subplotting for only positive value
+xi=GO_comb.index[GO_comb['changes'] > 0 ].tolist() #getting index of rows where 'changes' column is positive
+fig, ax = plt.subplots(figsize=(16,14))
+for i,k in enumerate(xi):
+    lab=x[i]
+    y=GO_comb.changes[k]
+    ax.bar(x=i, height=y, width=0.8, label=lab)
+    #Attach a text label above each bar
+    #ax.annotate(k, xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
+     #               textcoords="offset points",
+      #              ha='center', va='bottom')        
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Difference to default in percent')
+#ax.set_xlabel("GO_Slim Biological Process")
+#ax.set.axhline(0,ls='dotted', c="firebrick")
+ax.set_xticks([])
+ax.set_xticklabels(labels)
+ax.legend(title="GO biological process")
+fig.tight_layout()
+plt.show()  
