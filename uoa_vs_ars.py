@@ -5,6 +5,7 @@ Created on Mon Jan  4 10:32:07 2021
 @author: NUWI_352019
 """
 
+# Import packages
 import os
 import glob
 import re
@@ -12,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+#Working directory
 os.getcwd()
 os.chdir(r"F:\maulana\Analysis") #warning folder must contain only vcftools-freq2 output files
 
