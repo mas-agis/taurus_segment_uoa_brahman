@@ -32,11 +32,16 @@ for i,k in enumerate(files):
     filtered_reads=filtered_readsRegex.search(slurm_out).group(2)
     print("filtered reads are: " + filtered_reads)
     df.loc[i,"filtered_reads"]=int(filtered_reads)
-    #finding refseq
-    refseqRegex=re.compile(r'UOA_Brahman_1.fa | ARS_UCD1.2.fa ') #creating regex pattern of either brahman or ars refseq
+    #finding refseq works!
+    refseqRegex=re.compile(r'.{10}\.fa ') # | ARS_UCD1.2.fa  creating regex pattern of either brahman or ars refseq
     refseq=refseqRegex.search(slurm_out)
     print("the refseq is " + refseq.group())
     df.loc[i,"REF"]=refseq.group()
+    #trial
+    #refseqRegex=re.compile(r'UOA') #creating regex pattern of either brahman or ars refseq
+    #refseq=refseqRegex.search(slurm_out)
+    #print("the refseq is " + refseq.group(1))
+    #df.loc[i,"REF"]=refseq.group()    
     #adding total reads
     df.loc[i,"total_reads"]=df.loc[i,"filtered_reads"]+df.loc[i,"clean_reads"]
 ##!!Notes: apparently total_reads above are the clean reads only, thus filtered reads must be added
