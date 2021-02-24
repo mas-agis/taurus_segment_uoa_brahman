@@ -13,9 +13,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
 #Working directory
 os.getcwd()
-os.chdir(r"F:\maulana\Analysis") #warning folder must contain only vcftools-freq2 output files
+os.chdir(r"F:\maulana\Analysis") #folder must contain only vcftools-freq2 output files
 
 #function for tabulation of frequency output
 def fetchdata(ref="ARS",filter=0.5,scan=1000000):
@@ -72,7 +73,7 @@ def fetchdata(ref="ARS",filter=0.5,scan=1000000):
     summary.jumlah=summary["jumlah"].astype(int) #changing column from object to integer            
     return summary        
 
-#works! for ARS now
+###For alignment to ARS_UCD1.2
 coba=fetchdata(ref="ARS", filter=0.95)
 list_all=list(coba.breed.unique())
 list_taur=["jersey","simmental","holstein","angus"]
@@ -86,7 +87,8 @@ def race(x):
         y="indicus"
     return y
 coba["rase"]=coba.breed.str[:].apply(race) #new column based on string of another column
-#works with 29 subplots perfectly, hue on rase (fig.11)
+
+#Lineplot with 29 subplots, hue on rase (fig.1)
 g = sns.FacetGrid(data=coba, col="chr", col_wrap=6, height=2, hue="rase", hue_order=["indicus","taurus"])
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
 g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
@@ -94,14 +96,15 @@ g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
 g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
 g.fig.text(x=0, y=0.5, 
            verticalalignment='center', #make sure it's aligned at center vertically
-           s='SNPs with fixed alternative', #this is the text in the ylabel
+           s='NFAA sites', #this is the text in the ylabel
            size=12, #customize the fontsize if you will
            rotation=90) #vertical text - overall ylabel
 g.fig.text(x=0.5, y=0, 
            horizontalalignment='center', #make sure it's aligned at center horizontally
            s='Genome position in Mb', #this is the text in the xlabel
            size=12) #overall xlabel
-#works perfectly with 29 subplots, hue on rase(fig.12)
+
+#Boxplots with 29 subplots, hue on rase(supplementary fig.1 )
 fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
 u=list(range(1,30))
 pos=axes.flatten() #transform axes format from [a,k] to only single number
@@ -118,10 +121,10 @@ for i, k in enumerate(u):
     #pos[i].tick_params(top='off', bottom='off', left='on', right='off', labelleft='on', labelbottom='off')
 fig.legend(handles, labels, loc='center right')
 #fig.text(0.5, 0.04, 'common X', ha='center')
-fig.text(0.07, 0.5, 'SNPs with fixed alternative', va='center', rotation='vertical')
+fig.text(0.07, 0.5, 'NFAA sites', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
 
-#works! for UOA mapped individuals
+###For alignment to UOA_Brahman_1
 test=fetchdata(ref="UOA", filter=0.95)
 #test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
 listall=list(test.breed.unique())
@@ -137,7 +140,8 @@ def ras(x):
         y="indicus"
     return y
 test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
-#Fig9(Lineplot hue on rase) edit legends, x-label & y-label 
+
+#Lineplot with 29 subplots, hue on rase (fig.2)
 g = sns.FacetGrid(data=test, col="chr", height=2, hue="rase", 
                   hue_order=["indicus","taurus"],col_wrap=6)
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
@@ -146,14 +150,15 @@ g.set_axis_labels(" ", " ")
 g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
 g.fig.text(x=0, y=0.5, 
            verticalalignment='center', #make sure it's aligned at center vertically
-           s='SNPs with fixed alternative', #this is the text in the ylabel
+           s='NFAA sites', #this is the text in the ylabel
            size=12, #customize the fontsize if you will
            rotation=90) #vertical text - overall ylabel
 g.fig.text(x=0.5, y=0, 
            horizontalalignment='center', #make sure it's aligned at center horizontally
            s='Genome position in Mb', #this is the text in the xlabel
            size=12) #overall xlabel
-#Fig10(Boxplot hue on rase) edited legends and labels !! 
+
+#Boxplots with 29 subplots, hue on rase(supplementary fig.2)
 fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
 u=list(range(1,30))
 pos=axes.flatten() #transform axes format from [a,k] to only single number
@@ -170,7 +175,7 @@ for i, k in enumerate(u):
     #pos[i].tick_params(top='off', bottom='off', left='on', right='off', labelleft='on', labelbottom='off')
 fig.legend(handles, labels, loc='center right')
 #fig.text(0.5, 0.04, 'common X', ha='center')
-fig.text(0.07, 0.5, 'SNPs with fixed alternative', va='center', rotation='vertical')
+fig.text(0.07, 0.5, 'NFAA sites', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
 
 #pivot dataframe, using multiple index 'chr and window'
