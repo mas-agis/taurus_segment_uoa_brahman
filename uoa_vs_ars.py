@@ -197,6 +197,7 @@ rata=test_lagi.mean().delta1
 st=test_lagi.std().delta1
 batas=st*1.5 + rata
 batas1=rata-st*1.5
+
 #plot delta1 value
 fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
 u=list(range(1,30))
@@ -220,12 +221,14 @@ fig.legend(handles, labels, loc='center right')
 fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
 fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
+
 #filter dataset above 1.5 of standard deviation
 lagilagi=test_lagi[test_lagi["delta1"]>batas].reset_index()
 lagilagi=lagilagi.assign(start= lambda x: x.window*1000000)
 lagilagi=lagilagi.assign(end= lambda x: x.window*1000000 + 1000000-1)
 lagilagi = lagilagi[["chr","start","end"]]
 lagilagi.tail()
+
 #output regions to bed file
 np.savetxt(r'F:\maulana\adjusted_dataset\region_of_interest.bed', lagilagi.values, 
            fmt='%s', delimiter="\t") #all windows
@@ -233,6 +236,7 @@ np.savetxt(r'F:\maulana\adjusted_dataset\sites_count.txt',
            lagilagi,fmt='%s',
            header='rase chr window start end indicus taurus delta', 
            delimiter="\t") 
+
 #Compacting/segmenting dataset and counting the mean of taurus introgressed regions
 df=test_lagi[test_lagi["delta1"]>batas].reset_index() #extracting regions passing treshold of batas
 df=df.assign(start= lambda x: x.window*1000000)
@@ -245,11 +249,13 @@ for i in h:
     temp1=temp.groupby(mask.cumsum()).agg({'chr':'first','start':'first', 'end':'last', 'delta1':'sum'}) #extract four columns of 'temp' based on grouping of 'mask'
     temp1=temp1.assign(size= lambda x: (x.end+1 - x.start)/1000000) #assign 'size' column to the temp1
     df_segment=df_segment.append(temp1) #append each temporary chr dataframe to final dataframe 
+
 #saving the whole segments with taurus introgression
 np.savetxt(r'F:\maulana\adjusted_dataset\segmented_putative_taurus_regions.txt',
            df_segment,fmt='%s',
            header='Chr Start End Delta Size', 
            delimiter="\t")  
+
 #Overlapped genes in adjusted dataset with reported by Koufarioutis
 gene1 = pd.read_csv(r'F:\maulana\adjusted_dataset\coding_genes.txt', header=None, sep="\t").to_numpy()
 gene3 = pd.read_csv(r'F:\maulana\adjusted_dataset\koufarioutis_genes_taurus.txt', header=None, sep="\t").to_numpy()
