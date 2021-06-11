@@ -13,10 +13,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from scipy import stats
 
 #Working directory
 os.getcwd()
-os.chdir(r"F:\maulana\Analysis") #folder must contain only vcftools-freq2 output files
+os.chdir(r"D:\maulana\Analysis\Analysis_freq") #folder must contain only vcftools-freq2 output files
 
 #function for tabulation of frequency output
 def fetchdata(ref="ARS",filter=0.5,scan=1000000):
@@ -89,14 +90,39 @@ def race(x):
 coba["rase"]=coba.breed.str[:].apply(race) #new column based on string of another column
 
 #Lineplot with 29 subplots, hue on rase (fig.1)
-g = sns.FacetGrid(data=coba, col="chr", col_wrap=6, height=2, hue="rase", hue_order=["indicus","taurus"])
+g = sns.FacetGrid(data=coba, col="chr", col_wrap=6, height=2, hue="rase", 
+                  hue_order=["indicus","taurus"], sharex=False)
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
 g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
 g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
-g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+#g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
 g.fig.text(x=0, y=0.5, 
            verticalalignment='center', #make sure it's aligned at center vertically
            s='NFAA sites', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel
+
+#transform number of NFAA sites to Z-score separately for indicus and taurus
+indicus=coba.loc[coba['rase'] == "indicus" ]
+taurus=coba.loc[coba['rase'] == "taurus" ]
+indicus["z"] = stats.zscore(indicus["jumlah"], nan_policy="omit")
+taurus["z"] = stats.zscore(taurus["jumlah"], nan_policy="omit")
+combined = pd.concat([indicus, taurus], axis=0, join="outer")
+
+#Lineplot with 29 subplots, hue on rase (fig.1)
+g = sns.FacetGrid(data=combined, col="chr", col_wrap=6, height=2, hue="rase", 
+                  hue_order=["indicus","taurus"], sharex=False)
+g.map(sns.lineplot, "window", "z", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
+#g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='Z score of NFAA sites', #this is the text in the ylabel
            size=12, #customize the fontsize if you will
            rotation=90) #vertical text - overall ylabel
 g.fig.text(x=0.5, y=0, 
@@ -124,6 +150,7 @@ fig.legend(handles, labels, loc='center right')
 fig.text(0.07, 0.5, 'NFAA sites', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
 
+
 ###For alignment to UOA_Brahman_1
 test=fetchdata(ref="UOA", filter=0.95)
 #test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
@@ -141,13 +168,37 @@ def ras(x):
     return y
 test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
 
+#transform number of NFAA sites to Z-score separately for indicus and taurus
+indicus=test.loc[test['rase'] == "indicus" ]
+taurus=test.loc[test['rase'] == "taurus" ]
+indicus["z"] = stats.zscore(indicus["jumlah"], nan_policy="omit")
+taurus["z"] = stats.zscore(taurus["jumlah"], nan_policy="omit")
+combined1 = pd.concat([indicus, taurus], axis=0, join="outer")
+
+#Lineplot with 29 subplots, hue on rase (fig.1)
+g = sns.FacetGrid(data=combined1, col="chr", col_wrap=6, height=2, hue="rase", 
+                  hue_order=["indicus","taurus"], sharex=False)
+g.map(sns.lineplot, "window", "z", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
+#g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='Z score of NFAA sites', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel
+
 #Lineplot with 29 subplots, hue on rase (fig.2)
 g = sns.FacetGrid(data=test, col="chr", height=2, hue="rase", 
-                  hue_order=["indicus","taurus"],col_wrap=6)
+                  hue_order=["indicus","taurus"],col_wrap=6, sharex=False)
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
 g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
 g.set_axis_labels(" ", " ")
-g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.add_legend(title='',labels=['Bos taurus indicus', 'Bos taurus taurus'])
 g.fig.text(x=0, y=0.5, 
            verticalalignment='center', #make sure it's aligned at center vertically
            s='NFAA sites', #this is the text in the ylabel
@@ -178,6 +229,8 @@ fig.legend(handles, labels, loc='center right')
 fig.text(0.07, 0.5, 'NFAA sites', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
 
+
+###Delta values part
 #pivot dataframe, using multiple index 'chr and window'
 test_lagi=pd.pivot_table(test, values='jumlah', index=['chr', 'window'], columns=['rase'])
 test_lagi.head()
@@ -199,7 +252,7 @@ batas=st*1.5 + rata
 batas1=rata-st*1.5
 
 #plot delta1 value
-fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
+fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
 u=list(range(1,30))
 pos=axes.flatten() #transform axes format from [a,k] to only single number
 for i, k in enumerate(u):
@@ -210,16 +263,20 @@ for i, k in enumerate(u):
     pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
     handles, labels = pos[i].get_legend_handles_labels()
     pos[i].set_title('Chr ' + str(k)) #set title for subplots
-    pos[i].xaxis.label.set_visible(False)
-    if i in [23,24,25,26,27,28]:
-        pos[i].set_xticks([0,30,60,90,120,150])
-    else:
-         pos[i].set_xticks([])
+    #pos[i].xaxis.label.set_visible(False)
+    #if i in [23,24,25,26,27,28]:
+     #   pos[i].set_xticks([0,30,60,90,120,150])
+    #else:
+     #    pos[i].set_xticks([])
     pos[i].set_ylabel("")
+    pos[i].set_xlabel("")
     #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
-fig.legend(handles, labels, loc='center right')
-fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
-fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+#fig.legend(handles, labels, loc='center right')
+#fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+#fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+fig.text(0, 0.5, 'Delta', va='center', rotation='vertical')
+fig.tight_layout()
 fig.delaxes(pos[29]) #deleting subplot number 29
 
 #filter dataset above 1.5 of standard deviation
