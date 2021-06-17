@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from scipy import stats
+from sklearn import preprocessing
 
 #Working directory
 os.getcwd()
@@ -384,3 +385,248 @@ ax.set_xticklabels(labels)
 ax.legend(title="GO biological process")
 fig.tight_layout()
 plt.show()  
+
+
+
+###individual breed plotting for showing effect of taurus introgressed in UOA_Brahman
+###For alignment to UOA_Brahman_1
+test=fetchdata(ref="UOA", filter=0.95)
+#test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
+test.head()
+#adding columns rase
+listall=list(test.breed.unique())
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus"]
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
+          "sr_shorthorn"]
+listzeb=list(set(listall)-set(listtaur))
+#function to group breeds into taurus/indicus
+def ras(x):
+    if x in listtaur:
+        y="taurus"
+    else:
+        y="indicus"
+    return y
+test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
+#putative taurus-introgressed regions 
+intro_reg = pd.read_csv(r"D:\maulana\adjusted_dataset\draft\Old_additional_file_2.txt",
+                        sep= "\t", usecols=[0,1,2])
+
+#keeping only indicus and plot each breed separately
+indicus = test.loc[test['rase'] == "indicus"]
+for sp in indicus.breed.unique():
+  
+    subset = test.loc[test['breed'] == sp]
+    #plot delta1 value
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number
+    for i, k in enumerate(u):
+        data_temp = subset.loc[subset["chr"] == k]
+        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
+        #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+
+#keeping only taurus  and plot each breed separately
+taurus = test.loc[test['rase'] == "taurus"]
+for sp in taurus.breed.unique():
+    subset = test.loc[test['breed'] == sp]
+    #plot delta1 value
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number
+    for i, k in enumerate(u):
+        data_temp = subset.loc[subset["chr"] == k]
+        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
+        #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightblue")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+    
+    
+
+#multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
+breeds = [indicus.breed.unique()[1]]
+breeds.append(indicus.breed.unique()[7]) #2,3,4,6,7
+less_breeds = [breeds[2]]
+less_breeds.append(breeds[1])
+less_breeds.append(breeds[3])
+    
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number
+    for i, k in enumerate(u):
+        subset = test.loc[test['chr'] == k]
+        for sp in less_breeds:
+            data_temp = subset.loc[subset["breed"] == sp]
+            mean_X = data_temp.jumlah.mean()
+            data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
+            #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+            sns.lineplot(x="window", y="norm",data=data_temp, linewidth=1, ax=pos[i])
+            #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(handles, labels, title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+
+
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number  
+    test_subset = test[test["breed"].isin(less_breeds)]
+    for i, k in enumerate(u):
+        subset = test_subset.loc[test_subset['chr'] == k]
+        #for sp in less_breeds:
+         #   data_temp = subset.loc[subset["breed"] == sp]
+          #  mean_X = data_temp.jumlah.mean()
+           # data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
+            #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+        sns.lineplot(x="window", y="jumlah", data=subset, hue= "breed", linewidth=1, ax=pos[i])
+            #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].legend().remove()        
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(handles, labels, title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+
+g = sns.FacetGrid(data=combined, col="chr", col_wrap=6, height=2, hue="rase", 
+                  hue_order=["indicus","taurus"], sharex=False)
+g.map(sns.lineplot, "window", "z", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
+#g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='Z score of NFAA sites', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel
+
+multi = pd.DataFrame({})
+min_max_scaler = preprocessing.MinMaxScaler()
+for breed in breeds:
+    temp = test.loc[test['breed'] == breed]
+    mean_X = temp.jumlah.mean()
+    min_X = temp.jumlah.min()
+    max_X = temp.jumlah.max()
+    std_X = temp.jumlah.std()
+    temp = temp.assign(norm = lambda x: (temp.jumlah - min_X) / (max_X - min_X))
+    multi = pd.concat([multi, temp], axis = 0, join = "outer")
+   
+g = sns.FacetGrid(data=multi, col="chr", col_wrap=6, height=2, hue="breed", sharex=False)
+g.map(sns.lineplot, "window", "jumlah", alpha=.7)
+g.set_titles(col_template="chr{col_name}")#, row_template="{row_name}")
+g.set_axis_labels(" ", " ") #suppress x&y-label in each of grid
+#g.add_legend(title='',labels=['Bos indicus', 'Bos taurus'])
+g.fig.text(x=0, y=0.5, 
+           verticalalignment='center', #make sure it's aligned at center vertically
+           s='NFAA sites', #this is the text in the ylabel
+           size=12, #customize the fontsize if you will
+           rotation=90) #vertical text - overall ylabel
+g.fig.text(x=0.5, y=0, 
+           horizontalalignment='center', #make sure it's aligned at center horizontally
+           s='Genome position in Mb', #this is the text in the xlabel
+           size=12) #overall xlabel        
+temp_array_scaled = min_max_scaler.fit_transform(temp_array)
+temp["z"] = temp_array_scaled
+multi = pd.concat([multi, temp], axis = 0, join = "outer")
+    
+multi = test.loc[test['breed'] == "indicus"]
+indicus["z"] = stats.zscore(indicus["jumlah"], nan_policy="omit")
+taurus["z"] = stats.zscore(taurus["jumlah"], nan_policy="omit")
+combined1 = pd.concat([indicus, taurus], axis=0, join="outer")
+
+(df-df.min())/(df.max()-df.min())
+
+#smoothing the graph using scipy.interpolate
+from scipy.interpolate import interp1d
+
+f_cubic = interp1d(x, y, kind= "cubic")
+
+help(interp1d)
+# Plot.
+plt.plot(x, y, 'o', label='data')
+plt.plot(xnew, f_linear(xnew), '-', label='linear')
+plt.plot(xnew, f_cubic(xnew), '--', label='cubic')
+plt.legend(loc='best')
+plt.show()
