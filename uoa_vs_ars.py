@@ -413,8 +413,8 @@ intro_reg = pd.read_csv(r"D:\maulana\adjusted_dataset\draft\Old_additional_file_
 
 #keeping only indicus and plot each breed separately
 indicus = test.loc[test['rase'] == "indicus"]
+
 for sp in indicus.breed.unique():
-  
     subset = test.loc[test['breed'] == sp]
     #plot delta1 value
     fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
@@ -447,6 +447,48 @@ for sp in indicus.breed.unique():
     fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
     fig.tight_layout()
     fig.delaxes(pos[29]) #deleting subplot number 
+
+#multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
+breeds = indicus.breed.unique()
+less_breeds = [breeds[2]]
+less_breeds.append(breeds[4])
+
+fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+u=list(range(1,30))
+pos=axes.flatten() #transform axes format from [a,k] to only single number  
+test_subset = test[test["breed"].isin(less_breeds)]
+for i, k in enumerate(u):
+    subset = test_subset.loc[test_subset['chr'] == k]
+        #for sp in less_breeds:
+         #   data_temp = subset.loc[subset["breed"] == sp]
+          #  mean_X = data_temp.jumlah.mean()
+           # data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
+            #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+    sns.lineplot(x="window", y="jumlah", data=subset, hue= "breed", linewidth=1, ax=pos[i])
+            #temporary data for intro_reg
+    data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+    for l in range(len(data_temp1)):
+        pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+        pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+        pos[i].legend().remove()        
+        pos[i].set_ylabel("")
+        pos[i].set_xlabel("")
+        #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+fig.legend(handles, labels, title = sp, loc='lower right', title_fontsize=20)
+#fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+#fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+fig.tight_layout()
+fig.delaxes(pos[29]) #deleting subplot number 
 
 #keeping only taurus  and plot each breed separately
 taurus = test.loc[test['rase'] == "taurus"]
@@ -498,7 +540,7 @@ less_breeds.append(breeds[3])
     pos=axes.flatten() #transform axes format from [a,k] to only single number
     for i, k in enumerate(u):
         subset = test.loc[test['chr'] == k]
-        for sp in less_breeds:
+        for sp in breeeds: #less_breeds:
             data_temp = subset.loc[subset["breed"] == sp]
             mean_X = data_temp.jumlah.mean()
             data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
@@ -630,3 +672,5 @@ plt.plot(xnew, f_linear(xnew), '-', label='linear')
 plt.plot(xnew, f_cubic(xnew), '--', label='cubic')
 plt.legend(loc='best')
 plt.show()
+
+
