@@ -129,3 +129,15 @@ library(reshape2)
 tbl.m = melt(tbl3, id.vars="Individual")
 ggplot(tbl.m, aes(x = Individual, y =value, fill = variable)) +
   geom_bar(stat="identity")
+
+##Simple t-test for comparisons of alignment against ars_ucd and uoa_brahman
+alignment = read.table("D:/maulana/GSE_second_paper/Revision/Additional_file_1.txt", sep = '\t', header = TRUE, na.strings = "NA")
+t.test(as.integer(alignment$retain_reads_ars), as.integer(alignment$clean_reads_uoa))
+
+##Simple t-test for number of SNVs retained in  alignment against ars_ucd and uoa_brahman
+library(dplyr)
+alignment = read.table("D:/maulana/Analysis/Plink/total_snps.csv", sep = ',', header = TRUE, na.strings = "NA")
+taurus = filter(alignment, Type=="Btt")
+t.test(as.integer(taurus$ARS_UCD1.2), as.integer(taurus$UOA_Brahman1))
+indicus = filter(alignment, Type=="Bti")
+t.test(as.integer(indicus$ARS_UCD1.2), as.integer(indicus$UOA_Brahman1))

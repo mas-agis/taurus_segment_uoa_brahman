@@ -151,6 +151,20 @@ fig.legend(handles, labels, loc='center right')
 fig.text(0.07, 0.5, 'NFAA sites', va='center', rotation='vertical')
 fig.delaxes(pos[29]) #deleting subplot number 29
 
+#descriptive statistics for alignemnt to ars_ucd1.2
+#summarize values of NFAA sites to mean by rase of indicus and taurus
+coba_lagi=pd.pivot_table(coba, values='jumlah', index=['chr', 'window'], columns=['rase'])
+#for indicus 
+coba_lagi["indicus"].argmax() #596 is the index for maximum values
+coba_lagi.head(596+3) #themax value is 366,901,496 for each chr 5 window of 57,58,59
+coba_lagi["indicus"].mean() #the mean nfaa sits is 242
+coba_lagi["indicus"].std() #the sd is 96
+#for taurus
+coba_lagi["taurus"].argmax() #1417 is the index for maximum values
+coba_lagi.head(1417+3) #themax value is 79,863,57for each chr 13 window of 10,11,12
+coba_lagi["taurus"].mean() #the mean nfaa sits is 95
+coba_lagi["taurus"].std() #the sd is 68
+
 
 ###For alignment to UOA_Brahman_1
 test=fetchdata(ref="UOA", filter=0.95)
@@ -176,7 +190,7 @@ indicus["z"] = stats.zscore(indicus["jumlah"], nan_policy="omit")
 taurus["z"] = stats.zscore(taurus["jumlah"], nan_policy="omit")
 combined1 = pd.concat([indicus, taurus], axis=0, join="outer")
 
-#Lineplot with 29 subplots, hue on rase (fig.1)
+#Lineplot with 29 subplots, hue on rase (additional file- z-score)
 g = sns.FacetGrid(data=combined1, col="chr", col_wrap=6, height=2, hue="rase", 
                   hue_order=["indicus","taurus"], sharex=False)
 g.map(sns.lineplot, "window", "z", alpha=.7)
@@ -235,6 +249,19 @@ fig.delaxes(pos[29]) #deleting subplot number 29
 #pivot dataframe, using multiple index 'chr and window'
 test_lagi=pd.pivot_table(test, values='jumlah', index=['chr', 'window'], columns=['rase'])
 test_lagi.head()
+#descriptive statistics for alignment to uoa_brahman1
+#for indicus 
+test_lagi["indicus"].argmax() #1002 is the index for maximum values
+test_lagi.head(1002+3) #themax value is 1352,1425,598 for each chr 9 window of 3,4,5
+test_lagi["indicus"].mean() #the mean nfaa sits is 345
+test_lagi["indicus"].std() #the sd is 163
+#for taurus
+test_lagi["taurus"].argmax() #2243 is the index for maximum values
+test_lagi.head(2243+3) #themax value is 2100,3105,1719 for each chr 24 window of 51,52,53
+test_lagi["taurus"].mean() #the mean nfaa sits is 1162
+test_lagi["taurus"].std() #the sd is 68
+
+
 #delta1 as different values of indicus-mean minus taurus sites
 test_lagi = test_lagi.assign(delta1=lambda x: test_lagi.mean().taurus - x.taurus )
 test_lagi.head()
@@ -448,6 +475,10 @@ for sp in indicus.breed.unique():
     fig.tight_layout()
     fig.delaxes(pos[29]) #deleting subplot number 
 
+
+
+
+
 #multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
 breeds = indicus.breed.unique()
 less_breeds = [breeds[2]]
@@ -505,7 +536,7 @@ for sp in taurus.breed.unique():
         #temporary data for intro_reg
         data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
         for l in range(len(data_temp1)):
-            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightblue")
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
             #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
             #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
             #handles, labels = pos[i].get_legend_handles_labels()
@@ -527,7 +558,11 @@ for sp in taurus.breed.unique():
     fig.delaxes(pos[29]) #deleting subplot number 
     
     
-
+######################### End of the main code used in the analysis ######################################################
+##########################################################################################################################
+#code belows are just scratch to find suitable code for the analysis, and were not used as the main code for the analysis
+#However, I keep it as archive, as it might be useful later for plotting
+##########################################################################################################################
 #multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
 breeds = [indicus.breed.unique()[1]]
 breeds.append(indicus.breed.unique()[7]) #2,3,4,6,7
