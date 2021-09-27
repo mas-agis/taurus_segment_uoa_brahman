@@ -78,8 +78,9 @@ def fetchdata(ref="ARS",filter=0.5,scan=1000000):
 ###For alignment to ARS_UCD1.2
 coba=fetchdata(ref="ARS", filter=0.95)
 list_all=list(coba.breed.unique())
-list_taur=["jersey","simmental","holstein","angus"]
-list_taur=["jersey","simmental","holstein","angus","hereford","shorthorn"]
+list_taur=["jersey","simmental","holstein","angus","hereford","shorthorn"] #original
+list_taur=["jersey","simmental","holstein","angus","hereford","shorthorn",
+           "bohai"] #assigning bohai as taurine
 list_zeb=list(set(list_all)-set(list_taur))
 #function to group breeds into taurus/indicus
 def race(x):
@@ -90,7 +91,7 @@ def race(x):
     return y
 coba["rase"]=coba.breed.str[:].apply(race) #new column based on string of another column
 
-#Lineplot with 29 subplots, hue on rase (fig.1)
+#Lineplot with 29 subplots, hue on rase (fig.2)
 g = sns.FacetGrid(data=coba, col="chr", col_wrap=6, height=2, hue="rase", 
                   hue_order=["indicus","taurus"], sharex=False)
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
@@ -137,7 +138,8 @@ u=list(range(1,30))
 pos=axes.flatten() #transform axes format from [a,k] to only single number
 for i, k in enumerate(u):
     data_temp=coba.loc[coba['chr'] == k]
-    sns.boxplot(x="chr", y="jumlah",hue="rase",data=data_temp, linewidth=1, ax=pos[i],hue_order=["indicus","taurus"])
+    sns.boxplot(x="chr", y="jumlah",hue="rase",data=data_temp, linewidth=1, 
+                ax=pos[i],hue_order=["indicus","taurus"])
     pos[i].get_legend().remove()
     handles, labels = pos[i].get_legend_handles_labels()
     pos[i].set_title('chr' + str(k)) #set title for subplots
@@ -164,15 +166,25 @@ coba_lagi["taurus"].argmax() #1417 is the index for maximum values
 coba_lagi.head(1417+3) #themax value is 79,863,57for each chr 13 window of 10,11,12
 coba_lagi["taurus"].mean() #the mean nfaa sits is 95
 coba_lagi["taurus"].std() #the sd is 68
-
+#for indicus  !!bohai as taurine
+coba_lagi["indicus"].argmax() #596 is the index for maximum values
+coba_lagi.head(596+3) #themax value is 352,982,486 for each chr 5 window of 57,58,59
+coba_lagi["indicus"].mean() #the mean nfaa sits is 242
+coba_lagi["indicus"].std() #the sd is 100
+#for taurus !!bohai as taurine
+coba_lagi["taurus"].argmax() #1417 is the index for maximum values
+coba_lagi.head(1417+3) #themax value is 79,863,57for each chr 13 window of 10,11,12
+coba_lagi["taurus"].mean() #the mean nfaa sits is 119
+coba_lagi["taurus"].std() #the sd is 75
 
 ###For alignment to UOA_Brahman_1
 test=fetchdata(ref="UOA", filter=0.95)
 #test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
 listall=list(test.breed.unique())
-listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus"]
 listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
-          "sr_shorthorn"]
+          "sr_shorthorn"] #original
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
+          "sr_shorthorn", "sr_bohai"] #assigning bohai as taurine
 listzeb=list(set(listall)-set(listtaur))
 #function to group breeds into taurus/indicus
 def ras(x):
@@ -190,7 +202,7 @@ indicus["z"] = stats.zscore(indicus["jumlah"], nan_policy="omit")
 taurus["z"] = stats.zscore(taurus["jumlah"], nan_policy="omit")
 combined1 = pd.concat([indicus, taurus], axis=0, join="outer")
 
-#Lineplot with 29 subplots, hue on rase (additional file- z-score)
+#Lineplot with 29 subplots, hue on rase (additional figure- z-score)
 g = sns.FacetGrid(data=combined1, col="chr", col_wrap=6, height=2, hue="rase", 
                   hue_order=["indicus","taurus"], sharex=False)
 g.map(sns.lineplot, "window", "z", alpha=.7)
@@ -207,7 +219,7 @@ g.fig.text(x=0.5, y=0,
            s='Genome position in Mb', #this is the text in the xlabel
            size=12) #overall xlabel
 
-#Lineplot with 29 subplots, hue on rase (fig.2)
+#Lineplot with 29 subplots, hue on rase (fig.3)
 g = sns.FacetGrid(data=test, col="chr", height=2, hue="rase", 
                   hue_order=["indicus","taurus"],col_wrap=6, sharex=False)
 g.map(sns.lineplot, "window", "jumlah", alpha=.7)
@@ -224,7 +236,7 @@ g.fig.text(x=0.5, y=0,
            s='Genome position in Mb', #this is the text in the xlabel
            size=12) #overall xlabel
 
-#Boxplots with 29 subplots, hue on rase(supplementary fig.2)
+#Boxplots with 29 subplots, hue on rase(supplementary fig.3)
 fig, axes = plt.subplots(5, 6,squeeze=True, sharey=True, figsize=(16,14))
 u=list(range(1,30))
 pos=axes.flatten() #transform axes format from [a,k] to only single number
@@ -261,6 +273,17 @@ test_lagi.head(2243+3) #themax value is 2100,3105,1719 for each chr 24 window of
 test_lagi["taurus"].mean() #the mean nfaa sits is 1162
 test_lagi["taurus"].std() #the sd is 68
 
+#descriptive statistics for alignment to uoa_brahman1, !!bohai as taurine
+#for indicus 
+test_lagi["indicus"].argmax() #1001 is the index for maximum values
+test_lagi.head(1002+3) #themax value is 1153,1151,300 for each chr 9 window of 3,4,5
+test_lagi["indicus"].mean() #the mean nfaa sits is 165
+test_lagi["indicus"].std() #the sd is 98.8
+#for taurus
+test_lagi["taurus"].argmax() #2243 is the index for maximum values
+test_lagi.head(2243+3) #themax value is 2375,3398,1883 for each chr 24 window of 51,52,53
+test_lagi["taurus"].mean() #the mean nfaa sits is 1224
+test_lagi["taurus"].std() #the sd is 662
 
 #delta1 as different values of indicus-mean minus taurus sites
 test_lagi = test_lagi.assign(delta1=lambda x: test_lagi.mean().taurus - x.taurus )
@@ -354,214 +377,12 @@ gene4_filtered=np.setdiff1d(gene4, gene1)
 np.savetxt(r'F:\maulana\adjusted_dataset\gene_putative_indicus.txt',gene4_filtered,fmt='%s')#save intersect
 
 
-##Comparing neutral taurus genes to default genes GO functions
-GO=pd.read_csv(r'F:\maulana\adjusted_dataset\gene_non_intersect_taurus_panther_chart.txt',
-               delimiter="\t",header=None, usecols=[1,2])
-GO=GO.rename(columns={1: "go", 2: "count"})
-GO=GO.set_index('go')
-GO_default=pd.read_csv(r'F:\maulana\adjusted_dataset\default_genes_pantherChart.txt',
-               delimiter="\t",header=None, usecols=[1,2])
-GO_default=GO_default.rename(columns={1: "go", 2: "count"})
-GO_default=GO_default.set_index('go')
-GO_comb=GO_default.join(GO, lsuffix="_def", rsuffix="_gen")
-GO_comb=GO_comb.assign(def_per=lambda x: GO_comb.count_def/GO_comb.count_def.sum())
-GO_comb=GO_comb.assign(gen_per=lambda x: GO_comb.count_gen/GO_comb.count_gen.sum())
-GO_comb=GO_comb.assign(changes=lambda x: (GO_comb.gen_per-GO_comb.def_per)*100)
-#Save to txt GO_comb sorted by changes
-dat=GO_comb.sort_values(by=['changes'],ascending=False).reset_index()
-np.savetxt(r'F:\maulana\adjusted_dataset\panther_comparison.txt',
-           dat,fmt='%s',delimiter="\t")  
-#subplotting for each GO term
-x = GO_comb.index.to_numpy()
-xi=range(len(x))
-fig, ax = plt.subplots(figsize=(16,14))
-for i,k in enumerate(xi):
-    lab=x[i]
-    y=GO_comb.changes[i]
-    ax.bar(x=i, height=y, width=0.8, label=lab)
-    #Attach a text label above each bar
-    ax.annotate(x[i], xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
-                    textcoords="offset points",
-                    ha='center', va='bottom')        
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Difference to default in percent')
-ax.set_xlabel("GO_Slim Biological Process")
-#ax.set.axhline(0,ls='dotted', c="firebrick")
-ax.set_xticks([])
-ax.set_xticklabels(labels)
-ax.legend()
-fig.tight_layout()
-plt.show()  
-#subplotting for only positive value
-xi=GO_comb.index[GO_comb['changes'] > 0 ].tolist() #getting index of rows where 'changes' column is positive
-fig, ax = plt.subplots(figsize=(16,14))
-for i,k in enumerate(xi):
-    lab=x[i]
-    y=GO_comb.changes[k]
-    ax.bar(x=i, height=y, width=0.8, label=lab)
-    #Attach a text label above each bar
-    #ax.annotate(k, xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
-     #               textcoords="offset points",
-      #              ha='center', va='bottom')        
-# Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Difference to default in percent')
-#ax.set_xlabel("GO_Slim Biological Process")
-#ax.set.axhline(0,ls='dotted', c="firebrick")
-ax.set_xticks([])
-ax.set_xticklabels(labels)
-ax.legend(title="GO biological process")
-fig.tight_layout()
-plt.show()  
 
-
-
-###individual breed plotting for showing effect of taurus introgressed in UOA_Brahman
-###For alignment to UOA_Brahman_1
-test=fetchdata(ref="UOA", filter=0.95)
-#test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
-test.head()
-#adding columns rase
-listall=list(test.breed.unique())
-listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus"]
-listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
-          "sr_shorthorn"]
-listzeb=list(set(listall)-set(listtaur))
-#function to group breeds into taurus/indicus
-def ras(x):
-    if x in listtaur:
-        y="taurus"
-    else:
-        y="indicus"
-    return y
-test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
-#putative taurus-introgressed regions 
-intro_reg = pd.read_csv(r"D:\maulana\adjusted_dataset\draft\Old_additional_file_2.txt",
-                        sep= "\t", usecols=[0,1,2])
-
-#keeping only indicus and plot each breed separately
-indicus = test.loc[test['rase'] == "indicus"]
-
-for sp in indicus.breed.unique():
-    subset = test.loc[test['breed'] == sp]
-    #plot delta1 value
-    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
-    u=list(range(1,30))
-    pos=axes.flatten() #transform axes format from [a,k] to only single number
-    for i, k in enumerate(u):
-        data_temp = subset.loc[subset["chr"] == k]
-        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
-        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
-        #temporary data for intro_reg
-        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
-        for l in range(len(data_temp1)):
-            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
-            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
-            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
-            #handles, labels = pos[i].get_legend_handles_labels()
-            pos[i].set_title('Chr ' + str(k)) #set title for subplots
-            #pos[i].xaxis.label.set_visible(False)
-            #if i in [23,24,25,26,27,28]:
-                #   pos[i].set_xticks([0,30,60,90,120,150])
-                #else:
-                    #    pos[i].set_xticks([])
-            pos[i].set_ylabel("")
-            pos[i].set_xlabel("")
-            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
-    fig.legend(title = sp, loc='lower right', title_fontsize=20)
-    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
-    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
-    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
-    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
-    fig.tight_layout()
-    fig.delaxes(pos[29]) #deleting subplot number 
-
-
-
-
-
-#multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
-breeds = indicus.breed.unique()
-less_breeds = [breeds[2]]
-less_breeds.append(breeds[4])
-
-fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
-u=list(range(1,30))
-pos=axes.flatten() #transform axes format from [a,k] to only single number  
-test_subset = test[test["breed"].isin(less_breeds)]
-for i, k in enumerate(u):
-    subset = test_subset.loc[test_subset['chr'] == k]
-        #for sp in less_breeds:
-         #   data_temp = subset.loc[subset["breed"] == sp]
-          #  mean_X = data_temp.jumlah.mean()
-           # data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
-            #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
-    sns.lineplot(x="window", y="jumlah", data=subset, hue= "breed", linewidth=1, ax=pos[i])
-            #temporary data for intro_reg
-    data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
-    for l in range(len(data_temp1)):
-        pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
-            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
-            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
-            #handles, labels = pos[i].get_legend_handles_labels()
-        pos[i].set_title('Chr ' + str(k)) #set title for subplots
-            #pos[i].xaxis.label.set_visible(False)
-            #if i in [23,24,25,26,27,28]:
-                #   pos[i].set_xticks([0,30,60,90,120,150])
-                #else:
-                    #    pos[i].set_xticks([])
-        pos[i].legend().remove()        
-        pos[i].set_ylabel("")
-        pos[i].set_xlabel("")
-        #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
-fig.legend(handles, labels, title = sp, loc='lower right', title_fontsize=20)
-#fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
-fig.text(0.5, 0, 'Genome position in Mb', ha='center')
-#fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
-fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
-fig.tight_layout()
-fig.delaxes(pos[29]) #deleting subplot number 
-
-#keeping only taurus  and plot each breed separately
-taurus = test.loc[test['rase'] == "taurus"]
-for sp in taurus.breed.unique():
-    subset = test.loc[test['breed'] == sp]
-    #plot delta1 value
-    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
-    u=list(range(1,30))
-    pos=axes.flatten() #transform axes format from [a,k] to only single number
-    for i, k in enumerate(u):
-        data_temp = subset.loc[subset["chr"] == k]
-        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
-        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
-        #temporary data for intro_reg
-        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
-        for l in range(len(data_temp1)):
-            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
-            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
-            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
-            #handles, labels = pos[i].get_legend_handles_labels()
-            pos[i].set_title('Chr ' + str(k)) #set title for subplots
-            #pos[i].xaxis.label.set_visible(False)
-            #if i in [23,24,25,26,27,28]:
-                #   pos[i].set_xticks([0,30,60,90,120,150])
-                #else:
-                    #    pos[i].set_xticks([])
-            pos[i].set_ylabel("")
-            pos[i].set_xlabel("")
-            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
-    fig.legend(title = sp, loc='lower right', title_fontsize=20)
-    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
-    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
-    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
-    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
-    fig.tight_layout()
-    fig.delaxes(pos[29]) #deleting subplot number 
-    
     
 ######################### End of the main code used in the analysis ######################################################
 ##########################################################################################################################
 #code belows are just scratch to find suitable code for the analysis, and were not used as the main code for the analysis
-#However, I keep it as archive, as it might be useful later for plotting
+#However, I keep it as archive, as it might be useful later 
 ##########################################################################################################################
 #multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
 breeds = [indicus.breed.unique()[1]]
@@ -708,4 +529,204 @@ plt.plot(xnew, f_cubic(xnew), '--', label='cubic')
 plt.legend(loc='best')
 plt.show()
 
+##Comparing neutral taurus genes to default genes GO functions
+GO=pd.read_csv(r'F:\maulana\adjusted_dataset\gene_non_intersect_taurus_panther_chart.txt',
+               delimiter="\t",header=None, usecols=[1,2])
+GO=GO.rename(columns={1: "go", 2: "count"})
+GO=GO.set_index('go')
+GO_default=pd.read_csv(r'F:\maulana\adjusted_dataset\default_genes_pantherChart.txt',
+               delimiter="\t",header=None, usecols=[1,2])
+GO_default=GO_default.rename(columns={1: "go", 2: "count"})
+GO_default=GO_default.set_index('go')
+GO_comb=GO_default.join(GO, lsuffix="_def", rsuffix="_gen")
+GO_comb=GO_comb.assign(def_per=lambda x: GO_comb.count_def/GO_comb.count_def.sum())
+GO_comb=GO_comb.assign(gen_per=lambda x: GO_comb.count_gen/GO_comb.count_gen.sum())
+GO_comb=GO_comb.assign(changes=lambda x: (GO_comb.gen_per-GO_comb.def_per)*100)
+#Save to txt GO_comb sorted by changes
+dat=GO_comb.sort_values(by=['changes'],ascending=False).reset_index()
+np.savetxt(r'F:\maulana\adjusted_dataset\panther_comparison.txt',
+           dat,fmt='%s',delimiter="\t")  
+#subplotting for each GO term
+x = GO_comb.index.to_numpy()
+xi=range(len(x))
+fig, ax = plt.subplots(figsize=(16,14))
+for i,k in enumerate(xi):
+    lab=x[i]
+    y=GO_comb.changes[i]
+    ax.bar(x=i, height=y, width=0.8, label=lab)
+    #Attach a text label above each bar
+    ax.annotate(x[i], xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')        
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Difference to default in percent')
+ax.set_xlabel("GO_Slim Biological Process")
+#ax.set.axhline(0,ls='dotted', c="firebrick")
+ax.set_xticks([])
+ax.set_xticklabels(labels)
+ax.legend()
+fig.tight_layout()
+plt.show()  
+#subplotting for only positive value
+xi=GO_comb.index[GO_comb['changes'] > 0 ].tolist() #getting index of rows where 'changes' column is positive
+fig, ax = plt.subplots(figsize=(16,14))
+for i,k in enumerate(xi):
+    lab=x[i]
+    y=GO_comb.changes[k]
+    ax.bar(x=i, height=y, width=0.8, label=lab)
+    #Attach a text label above each bar
+    #ax.annotate(k, xy=(i,y),xytext=(0, 3),  # 3 points vertical offset
+     #               textcoords="offset points",
+      #              ha='center', va='bottom')        
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Difference to default in percent')
+#ax.set_xlabel("GO_Slim Biological Process")
+#ax.set.axhline(0,ls='dotted', c="firebrick")
+ax.set_xticks([])
+ax.set_xticklabels(labels)
+ax.legend(title="GO biological process")
+fig.tight_layout()
+plt.show()  
 
+###individual breed plotting for showing effect of taurus introgressed in UOA_Brahman
+###For alignment to UOA_Brahman_1
+test=fetchdata(ref="UOA", filter=0.95)
+#test=fetchdata(ref="UOA", filter=0.95, scan=100000) #trial
+test.head()
+#adding columns rase
+listall=list(test.breed.unique())
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus"]
+listtaur=["sr_jersey","sr_simmental","sr_holstein","sr_angus","sr_hereford",
+          "sr_shorthorn"]
+listzeb=list(set(listall)-set(listtaur))
+#function to group breeds into taurus/indicus
+def ras(x):
+    if x in listtaur:
+        y="taurus"
+    else:
+        y="indicus"
+    return y
+test["rase"]=test.breed.str[:].apply(ras) #new column based on string of another column
+#putative taurus-introgressed regions 
+intro_reg = pd.read_csv(r"D:\maulana\adjusted_dataset\draft\Old_additional_file_2.txt",
+                        sep= "\t", usecols=[0,1,2])
+
+#keeping only indicus and plot each breed separately
+indicus = test.loc[test['rase'] == "indicus"]
+
+for sp in indicus.breed.unique():
+    subset = test.loc[test['breed'] == sp]
+    #plot delta1 value
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number
+    for i, k in enumerate(u):
+        data_temp = subset.loc[subset["chr"] == k]
+        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
+        #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+
+
+
+
+
+#multibreeds in each plots - boran1, brahman2, gir3, indianzebu4, mangshi6, nelore7, 
+breeds = indicus.breed.unique()
+less_breeds = [breeds[2]]
+less_breeds.append(breeds[4])
+
+fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+u=list(range(1,30))
+pos=axes.flatten() #transform axes format from [a,k] to only single number  
+test_subset = test[test["breed"].isin(less_breeds)]
+for i, k in enumerate(u):
+    subset = test_subset.loc[test_subset['chr'] == k]
+        #for sp in less_breeds:
+         #   data_temp = subset.loc[subset["breed"] == sp]
+          #  mean_X = data_temp.jumlah.mean()
+           # data_temp = data_temp.assign(norm = lambda x: data_temp.jumlah - mean_X)
+            #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+    sns.lineplot(x="window", y="jumlah", data=subset, hue= "breed", linewidth=1, ax=pos[i])
+            #temporary data for intro_reg
+    data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+    for l in range(len(data_temp1)):
+        pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+        pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+        pos[i].legend().remove()        
+        pos[i].set_ylabel("")
+        pos[i].set_xlabel("")
+        #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+fig.legend(handles, labels, title = sp, loc='lower right', title_fontsize=20)
+#fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+#fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+fig.tight_layout()
+fig.delaxes(pos[29]) #deleting subplot number 
+
+#keeping only taurus  and plot each breed separately
+taurus = test.loc[test['rase'] == "taurus"]
+for sp in taurus.breed.unique():
+    subset = test.loc[test['breed'] == sp]
+    #plot delta1 value
+    fig, axes = plt.subplots(5, 6,squeeze=False, sharey=True, sharex=False, figsize=(16,14))
+    u=list(range(1,30))
+    pos=axes.flatten() #transform axes format from [a,k] to only single number
+    for i, k in enumerate(u):
+        data_temp = subset.loc[subset["chr"] == k]
+        #data_temp=subset.loc[subset.index.get_level_values(0).isin({k}),:].reset_index()
+        sns.lineplot(x="window", y="jumlah",data=data_temp, linewidth=1, ax=pos[i])
+        #temporary data for intro_reg
+        data_temp1 = intro_reg.loc[intro_reg["Chr"] == k]
+        for l in range(len(data_temp1)):
+            pos[i].axvspan(data_temp1.iloc[l,1], data_temp1.iloc[l,2], color="lightgreen")
+            #pos[i].axhline(rata, ls='dotted', c="firebrick", label="mean")
+            #   pos[i].axhspan(ymin=batas1, ymax=batas, color="lightgrey", label="1.5 sd")
+            #handles, labels = pos[i].get_legend_handles_labels()
+            pos[i].set_title('Chr ' + str(k)) #set title for subplots
+            #pos[i].xaxis.label.set_visible(False)
+            #if i in [23,24,25,26,27,28]:
+                #   pos[i].set_xticks([0,30,60,90,120,150])
+                #else:
+                    #    pos[i].set_xticks([])
+            pos[i].set_ylabel("")
+            pos[i].set_xlabel("")
+            #pos[i].tick_params(top='off', bottom='on', left='on', right='off', labelleft='on', labelbottom='off')
+    fig.legend(title = sp, loc='lower right', title_fontsize=20)
+    #fig.text(0.5, 0.04, 'Genome position in Mb', ha='center')
+    fig.text(0.5, 0, 'Genome position in Mb', ha='center')
+    #fig.text(0.07, 0.5, 'Delta', va='center', rotation='vertical')
+    fig.text(0, 0.5, 'NFAA sites', va='center', rotation='vertical')
+    fig.tight_layout()
+    fig.delaxes(pos[29]) #deleting subplot number 
+    

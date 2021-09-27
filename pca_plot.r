@@ -2,31 +2,51 @@
 ##plotting pca for uoa_brahman_1
 setwd("D:/maulana/GSE_second_paper/Revision/pca/5")
 library(ggplot2)
-#full_uoa
+#reading and prepare data
 data = read.table("ready_combined_pca.eigenvec",header=T, sep="\t")
-gp <- ggplot(data,aes(x=data$PC1, y=data$PC2, group=Breed, color=Breed, shape=Breed)) +
+#adding taurine/indicine information
+info= c(2, rep(1,30), rep(2,15), rep(1,3), rep(2,6), rep(1,3), rep(2,15), rep(1,6), rep(2,22),
+        rep(1,12))
+data$group= as.factor(info)
+
+info= c("Indicine", rep("Taurine",30), rep("Indicine",15), rep("Taurine",3), rep("Indicine",6), rep("Taurine",3), rep("Indicine",15), rep("Taurine",6), rep("Indicine",22),
+        rep("Taurine",12))
+data$Cattle= as.factor(info)
+#full_uoa
+gp <- ggplot(data,aes(x=data$PC1, y=data$PC2, group=Breed, color=Cattle, shape=Breed)) +
   scale_shape_manual(values=1:nlevels(data$Breed)) +
   geom_hline(yintercept = 0, linetype="dotted") + 
   geom_vline(xintercept = 0, linetype="dotted") +
   labs(x="Component 1", y=" Component 2", title = "full_uoa")+
   geom_point(size=3)
 gp
-data$Breed
 
+data$Breed
 data[-c(119:129),]
 
 #introgressed_regions
 data1 = read.table("subset_ready_combined_pca.eigenvec",header=T, sep="\t")
-gp1 <- ggplot(data1,aes(x=data1$PC1, y=data1$PC2, group=Breed, color=Breed, shape=Breed)) +
+#adding taurine/indicine information
+info= c("Indicine", rep("Taurine",30), rep("Indicine",15), rep("Taurine",3), rep("Indicine",6), rep("Taurine",3), rep("Indicine",15), rep("Taurine",6), rep("Indicine",22),
+        rep("Taurine",12))
+data1$Cattle= as.factor(info)
+#plot
+gp1 <- ggplot(data1,aes(x=data1$PC1, y=data1$PC2, group=Breed, color=Cattle, shape=Breed)) +
   scale_shape_manual(values=1:nlevels(data1$Breed)) +
   geom_hline(yintercept = 0, linetype="dotted") + 
   geom_vline(xintercept = 0, linetype="dotted") +
   labs(x="Component 1", y=" Component 2", title = "introgressed_reg")+
   geom_point(size=3)
 gp1
+
 #non-introgressed_regions
 data2 = read.table("subset1_ready_combined_pca.eigenvec",header=T, sep="\t")
-gp2 <- ggplot(data2,aes(x=data2$PC1, y=data2$PC2, group=Breed, color=Breed, shape=Breed)) +
+#adding taurine/indicine information
+info= c("Indicine", rep("Taurine",30), rep("Indicine",15), rep("Taurine",3), rep("Indicine",6), rep("Taurine",3), rep("Indicine",15), rep("Taurine",6), rep("Indicine",22),
+        rep("Taurine",12))
+data2$Cattle= as.factor(info)
+#plot
+gp2 <- ggplot(data2,aes(x=data2$PC1, y=data2$PC2, group=Breed, color=Cattle, shape=Breed)) +
   scale_shape_manual(values=1:nlevels(data$Breed)) +
   geom_hline(yintercept = 0, linetype="dotted") + 
   geom_vline(xintercept = 0, linetype="dotted") +
@@ -36,6 +56,7 @@ gp2
 
 #ars_full
 data3 = read.table("D:/maulana/GSE_second_paper/Revision/pca/5/combined_filtered_extra_pca.eigenvec",header=T, sep="\t")
+#plot
 gp3 <- ggplot(data3,aes(x=data3$PC1, y=data3$PC2, group=Breed, color=Breed, shape=Breed)) +
   scale_shape_manual(values=1:nlevels(data$Breed)) +
   geom_hline(yintercept = 0, linetype="dotted") + 
